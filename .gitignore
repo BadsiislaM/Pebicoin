@@ -1,4 +1,38 @@
+# ========== CMake build output ==========
 build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# ========== Qt (UI/Resource Autogen) ==========
+*_autogen/
+*.qrc.depends
+
+# ========== Compiled Object Files ==========
 *.o
-*.a
+*.obj
 *.so
+*.a
+*.dll
+*.lib
+*.exe
+
+# ========== Editor Configs ==========
+.vscode/
+.idea/
+
+# ========== System Files ==========
+.DS_Store
+Thumbs.db
+
+# ========== Logs & Misc ==========
+*.log
+
+# ========== Backup/Swap Files ==========
+*~
+*.swp
+*.bak
+
+# ========== Git Ignore itself ==========
+!.gitignore
