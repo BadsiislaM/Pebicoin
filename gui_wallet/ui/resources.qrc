@@ -1,0 +1,14 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/icons">
+        <file>icons/wallet.svg</file>
+        <file>icons/send.svg</file>
+        <file>icons/receive.svg</file>
+        <file>icons/history.svg</file>
+        <file>icons/pebicoin.svg</file>
+    </qresource>
+    <qresource prefix="/styles">
+        <file>styles/dark.qss</file>
+        <file>styles/light.qss</file>
+    </qresource>
+</RCC>
