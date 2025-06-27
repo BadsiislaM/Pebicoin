@@ -1,5 +1,9 @@
 # ========== CMake build output ==========
 build/
+dist/
+cmake/
+build-win/
+third_party/
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
