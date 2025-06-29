@@ -6,17 +6,27 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <cstring>
+#include <arpa/inet.h>
+#include <netdb.h>
 
 #include "blockchain.h"
 #include "miner.h"
 #include "config.h"
 #include "utils.h"
+#include "seeds.h"
 
 #define P2P_PORT 24444  // يمكنك تغييره لأي منفذ تريده
 
 using namespace Pebicoin;
 
-// Function to display help message
+// دالة لجلب اسم المضيف الحالي
+std::string getHostname() {
+    char hostname[1024];
+    gethostname(hostname, sizeof(hostname));
+    return std::string(hostname);
+}
+
+// عرض المساعدة
 void displayHelp() {
     std::cout << "Pebicoin Core v1.0 - A standalone cryptocurrency" << std::endl;
     std::cout << "Usage: pebicoin [command] [options]" << std::endl;
@@ -29,7 +39,7 @@ void displayHelp() {
     std::cout << "  seed                   Run as a seed node on port " << P2P_PORT << std::endl;
 }
 
-// Function to display blockchain information
+// عرض معلومات سلسلة الكتل
 void displayBlockchainInfo(const Blockchain& blockchain) {
     std::cout << "\nPebicoin Blockchain Information:" << std::endl;
     std::cout << "  Name: " << COIN_NAME << " (" << COIN_TICKER << ")" << std::endl;
@@ -100,7 +110,7 @@ int main(int argc, char* argv[]) {
         setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt));
 
         address.sin_family = AF_INET;
-        address.sin_addr.s_addr = INADDR_ANY;
+        inet_pton(AF_INET, "0.0.0.0", &address.sin_addr); // بديل آمن لـ INADDR_ANY
         address.sin_port = htons(P2P_PORT);
 
         if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
@@ -115,6 +125,41 @@ int main(int argc, char* argv[]) {
 
         std::cout << "✅ Pebicoin Seed Node is running on port " << P2P_PORT << "..." << std::endl;
 
+        // الاتصال بالعقد الأخرى
+        std::string currentHost = getHostname();
+
+        for (const auto& seed : SEED_NODES) {
+            if (seed == currentHost) continue;
+
+            struct sockaddr_in seedAddr;
+            seedAddr.sin_family = AF_INET;
+            seedAddr.sin_port = htons(P2P_PORT);
+
+            struct hostent* host = gethostbyname(seed.c_str());
+            if (host == nullptr) {
+                std::cerr << "❌ Failed to resolve: " << seed << std::endl;
+                continue;
+            }
+
+            memcpy(&seedAddr.sin_addr, host->h_addr, host->h_length);
+
+            int sock = socket(AF_INET, SOCK_STREAM, 0);
+            if (sock < 0) {
+                std::cerr << "❌ Socket error while connecting to: " << seed << std::endl;
+                continue;
+            }
+
+            if (connect(sock, (struct sockaddr*)&seedAddr, sizeof(seedAddr)) == 0) {
+                std::cout << "🔗 Connected to seed node: " << seed << std::endl;
+                // يمكنك إرسال بيانات هنا (مثلاً "ping\n")
+            } else {
+                std::cerr << "❌ Failed to connect to: " << seed << std::endl;
+            }
+
+            close(sock);
+        }
+
+        // استقبال اتصالات واردة
         while (true) {
             new_socket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
             if (new_socket >= 0) {
@@ -128,5 +173,6 @@ int main(int argc, char* argv[]) {
         displayHelp();
         return 1;
     }
+
     return 0;
 }
