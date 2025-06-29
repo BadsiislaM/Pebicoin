@@ -15,7 +15,7 @@
 #include "utils.h"
 #include "seeds.h"
 
-#define P2P_PORT 24444  // يمكنك تغييره لأي منفذ تريده
+#define P2P_PORT 24444
 
 using namespace Pebicoin;
 
@@ -110,7 +110,11 @@ int main(int argc, char* argv[]) {
         setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt));
 
         address.sin_family = AF_INET;
+<<<<<<< HEAD
         inet_pton(AF_INET, "0.0.0.0", &address.sin_addr); // بديل آمن لـ INADDR_ANY
+=======
+        inet_pton(AF_INET, "0.0.0.0", &address.sin_addr);
+>>>>>>> b24a27d (ربط seed nodes وتجاهل الذات تلقائيًا + تحسين الاتصال)
         address.sin_port = htons(P2P_PORT);
 
         if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
@@ -125,7 +129,10 @@ int main(int argc, char* argv[]) {
 
         std::cout << "✅ Pebicoin Seed Node is running on port " << P2P_PORT << "..." << std::endl;
 
+<<<<<<< HEAD
         // الاتصال بالعقد الأخرى
+=======
+>>>>>>> b24a27d (ربط seed nodes وتجاهل الذات تلقائيًا + تحسين الاتصال)
         std::string currentHost = getHostname();
 
         for (const auto& seed : SEED_NODES) {
@@ -151,7 +158,10 @@ int main(int argc, char* argv[]) {
 
             if (connect(sock, (struct sockaddr*)&seedAddr, sizeof(seedAddr)) == 0) {
                 std::cout << "🔗 Connected to seed node: " << seed << std::endl;
+<<<<<<< HEAD
                 // يمكنك إرسال بيانات هنا (مثلاً "ping\n")
+=======
+>>>>>>> b24a27d (ربط seed nodes وتجاهل الذات تلقائيًا + تحسين الاتصال)
             } else {
                 std::cerr << "❌ Failed to connect to: " << seed << std::endl;
             }
@@ -159,7 +169,6 @@ int main(int argc, char* argv[]) {
             close(sock);
         }
 
-        // استقبال اتصالات واردة
         while (true) {
             new_socket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
             if (new_socket >= 0) {
