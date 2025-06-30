@@ -19,14 +19,12 @@
 
 using namespace Pebicoin;
 
-// دالة لجلب اسم المضيف الحالي
 std::string getHostname() {
     char hostname[1024];
     gethostname(hostname, sizeof(hostname));
     return std::string(hostname);
 }
 
-// عرض المساعدة
 void displayHelp() {
     std::cout << "Pebicoin Core v1.0 - A standalone cryptocurrency" << std::endl;
     std::cout << "Usage: pebicoin [command] [options]" << std::endl;
@@ -39,7 +37,6 @@ void displayHelp() {
     std::cout << "  seed                   Run as a seed node on port " << P2P_PORT << std::endl;
 }
 
-// عرض معلومات سلسلة الكتل
 void displayBlockchainInfo(const Blockchain& blockchain) {
     std::cout << "\nPebicoin Blockchain Information:" << std::endl;
     std::cout << "  Name: " << COIN_NAME << " (" << COIN_TICKER << ")" << std::endl;
@@ -110,11 +107,7 @@ int main(int argc, char* argv[]) {
         setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt));
 
         address.sin_family = AF_INET;
-<<<<<<< HEAD
-        inet_pton(AF_INET, "0.0.0.0", &address.sin_addr); // بديل آمن لـ INADDR_ANY
-=======
         inet_pton(AF_INET, "0.0.0.0", &address.sin_addr);
->>>>>>> b24a27d (ربط seed nodes وتجاهل الذات تلقائيًا + تحسين الاتصال)
         address.sin_port = htons(P2P_PORT);
 
         if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
@@ -129,10 +122,6 @@ int main(int argc, char* argv[]) {
 
         std::cout << "✅ Pebicoin Seed Node is running on port " << P2P_PORT << "..." << std::endl;
 
-<<<<<<< HEAD
-        // الاتصال بالعقد الأخرى
-=======
->>>>>>> b24a27d (ربط seed nodes وتجاهل الذات تلقائيًا + تحسين الاتصال)
         std::string currentHost = getHostname();
 
         for (const auto& seed : SEED_NODES) {
@@ -143,36 +132,20 @@ int main(int argc, char* argv[]) {
             seedAddr.sin_port = htons(P2P_PORT);
 
             struct hostent* host = gethostbyname(seed.c_str());
-            if (host == nullptr) {
-                std::cerr << "❌ Failed to resolve: " << seed << std::endl;
-                continue;
-            }
+            if (host == nullptr) continue;
 
             memcpy(&seedAddr.sin_addr, host->h_addr, host->h_length);
 
             int sock = socket(AF_INET, SOCK_STREAM, 0);
-            if (sock < 0) {
-                std::cerr << "❌ Socket error while connecting to: " << seed << std::endl;
-                continue;
-            }
+            if (sock < 0) continue;
 
-            if (connect(sock, (struct sockaddr*)&seedAddr, sizeof(seedAddr)) == 0) {
-                std::cout << "🔗 Connected to seed node: " << seed << std::endl;
-<<<<<<< HEAD
-                // يمكنك إرسال بيانات هنا (مثلاً "ping\n")
-=======
->>>>>>> b24a27d (ربط seed nodes وتجاهل الذات تلقائيًا + تحسين الاتصال)
-            } else {
-                std::cerr << "❌ Failed to connect to: " << seed << std::endl;
-            }
-
+            connect(sock, (struct sockaddr*)&seedAddr, sizeof(seedAddr));
             close(sock);
         }
 
         while (true) {
             new_socket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
             if (new_socket >= 0) {
-                std::cout << "🔌 New peer connected" << std::endl;
                 close(new_socket);
             }
         }
