@@ -8,6 +8,7 @@
 #include <cstring>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <nlohmann/json.hpp>
 
 #include "blockchain.h"
 #include "miner.h"
@@ -18,6 +19,7 @@
 #define P2P_PORT 24444
 
 using namespace Pebicoin;
+using json = nlohmann::json;
 
 std::string getHostname() {
     char hostname[1024];
@@ -83,6 +85,8 @@ int main(int argc, char* argv[]) {
 
         std::cout << "Block successfully mined!" << std::endl;
         displayBlockchainInfo(blockchain);
+
+        sendBlockToPeers(blockchain.getLastBlock(), SEED_NODES, P2P_PORT);
     }
     else if (command == "createwallet") {
         std::cout << "This feature requires the wallet module." << std::endl;
@@ -146,6 +150,34 @@ int main(int argc, char* argv[]) {
         while (true) {
             new_socket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
             if (new_socket >= 0) {
+                char buffer[4096] = {0};
+                ssize_t valread = read(new_socket, buffer, sizeof(buffer));
+                if (valread > 0) {
+                    try {
+                        auto j = json::parse(buffer);
+                        if (j.contains("type") && j["type"] == "block") {
+                            Block receivedBlock(
+                                j["index"],
+                                j["timestamp"],
+                                j["previousHash"],
+                                j["hash"],
+                                j["nonce"],
+                                j["data"]
+                            );
+
+                            const Block& latest = blockchain.getLastBlock();
+                            if (receivedBlock.previousHash == latest.hash &&
+                                receivedBlock.index == latest.index + 1) {
+                                blockchain.chain.push_back(receivedBlock);
+                                std::cout << "🧱 New block received and added at height: " << receivedBlock.index << std::endl;
+                            } else {
+                                std::cerr << "⚠️ Invalid block received (wrong previous hash or index)" << std::endl;
+                            }
+                        }
+                    } catch (const std::exception& e) {
+                        std::cerr << "❌ Error parsing message: " << e.what() << std::endl;
+                    }
+                }
                 close(new_socket);
             }
         }
